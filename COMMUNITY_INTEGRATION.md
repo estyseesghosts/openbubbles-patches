@@ -59,8 +59,39 @@ and matched after the copy). `aapt` badging confirms package
 the APK carries `lib/arm64-v8a/libflutter.so` together with `lib/x86/` and
 `lib/x86_64/`, matching the other debug APKs in this stack.
 
-All APKs use the same Flutter 3.24.0 alpha debug `android-arm64` build command
-as the local stack. Preserved APKs are under ignored `build/integration-apks/`;
-command logs, SHA-256, timing, `aapt` badging, and artifact JSON are under the
-evidence directory named in `INTEGRATION.md`. Builds are not device validation:
-authentication remains blocked by the pre-existing RustPush 2FA issue.
+All preserved APKs use the same Flutter 3.24.0 alpha **debug**
+`android-arm64` build command as the local stack. Preserved APKs are under
+ignored `build/integration-apks/`; command logs, SHA-256, timing, `aapt` badging,
+and artifact JSON are under the evidence directory named in `INTEGRATION.md`.
+
+## Release compile validation
+
+A single **release** build was then made from the integration branch head
+`9ef077206`, to exercise code paths no debug build reaches: Dart AOT and Rust
+compiled with `--release` (cargokit passes `--release` whenever the Flutter
+build is not debug). `integration-release-apk` exited **0** in **508.8 seconds**,
+producing `app-alpha-release.apk`, 392,244,657 bytes, SHA-256
+`bfaaf8ddc4141e56025c8d0b43c560b33aac95471baa3323ff063849040ddefb`. `aapt`
+badging shows no `application-debuggable`, and the APK contains
+`lib/arm64-v8a/libflutter.so` and `lib/arm64-v8a/librust_lib_bluebubbles.so`.
+
+**That APK is debug-signed and is not distribution-grade.** Signing used a
+gitignored `android/key.properties` (`android/key.properties` is ignored by
+`.gitignore:39`) pointing at the local `~/.android/debug.keystore`; no tracked
+file was modified and `git status` is unchanged by it. `apksigner` records the
+signer as `C=US, O=Android, CN=Android Debug`. A real release keystore was never
+available in this environment, so this build validates compilation only. It is
+deliberately not copied into `build/integration-apks/`.
+
+The release APK was then installed on a connected device (Samsung SM-G986W,
+Android 13 / SDK 33) via `adb install -r`, after confirming `arm64-v8a` support
+and SDK 33 against the APK's `minSdk 24`. The installed `base.apk` was verified
+**byte-identical** to the build output by size and on-device SHA-256. Package
+`com.bluebubbles.messaging.alpha` reports `versionCode 20002227`, `versionName
+1.15.0`, and `pkgFlags` without `DEBUGGABLE`. No runtime permissions were granted,
+the app was not launched, and no account action was performed; the pre-existing
+non-alpha `com.bluebubbles.messaging` on the device was left untouched.
+
+Installing confirms the release variant loads on a real arm64 device. It is still
+not end-to-end validation: authentication remains blocked by the pre-existing
+RustPush 2FA issue, so no server handshake was exercised.
