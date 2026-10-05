@@ -57,6 +57,16 @@ var usingRustPush = true;
 bool isAuthing = false;
 final systemTray = st.SystemTray();
 
+String _renderIncidentId() => Random.secure().nextInt(0x7fffffff).toRadixString(16).padLeft(8, '0');
+
+void _logRenderError(FlutterErrorDetails details) {
+  final incidentId = _renderIncidentId();
+  Logger.error(
+    "Render error incident=$incidentId exceptionType=${details.exception.runtimeType}",
+    trace: details.stack,
+  );
+}
+
 @pragma('vm:entry-point')
 //ignore: prefer_void_to_null
 Future<Null> main(List<String> arguments) async {
@@ -83,7 +93,7 @@ Future<Null> initApp(bool bubble, List<String> arguments) async {
       StackTrace? stacktrace;
 
       FlutterError.onError = (details) {
-        Logger.error("Rendering Error: ${details.exceptionAsString()}", error: details.exception, trace: details.stack);
+        _logRenderError(details);
       };
 
       try {
@@ -466,7 +476,8 @@ class _HomeState extends OptimizedState<Home> with WidgetsBindingObserver, TrayL
       }
 
       ErrorWidget.builder = (FlutterErrorDetails error) {
-        Logger.error("An unexpected error occurred when rendering.", error: error.exception, trace: error.stack);
+        // FlutterError.onError above records the incident. Logging here would
+        // produce a second incident ID for the same rendering failure.
         return CustomErrorWidget(
           "An unexpected error occurred when rendering.",
         );
