@@ -1137,7 +1137,7 @@ class Message {
       chat ??= Chat.findByRustGuid(c.chatId);
     }
 
-    if (chat?.isRpSms ?? true) return;
+    if (chat?.isRpSms ?? true) return false;
 
     Logger.info("Syncing new message");
 
