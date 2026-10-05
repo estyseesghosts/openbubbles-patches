@@ -133,12 +133,20 @@ class NotificationsService extends GetxService {
     if (!kIsWeb) {
       final countQuery = (Database.messages.query()..order(Message_.id, flags: Order.descending)).watch(triggerImmediately: true);
       countSub = countQuery.listen((event) {
-        if (chats.restoring) return;
-        if (!ss.settings.finishedSetup.value) return;
         final newCount = event.count();
+        if (chats.restoring) {
+          // Advance the baseline while notifications are suppressed so restored
+          // history isn't replayed as new messages when restoration completes.
+          Logger.debug("Notifications: restoring — advancing baseline $currentCount -> $newCount (suppressed ${newCount - currentCount} restored messages)");
+          currentCount = newCount;
+          return;
+        }
+        if (!ss.settings.finishedSetup.value) return;
         final activeChatFetching = cm.activeChat != null ? ms(cm.activeChat!.chat.guid).isFetching : false;
         if (ls.isAlive && (!sync.isIncrementalSyncing.value && !kIsDesktop) && !activeChatFetching && newCount > currentCount && currentCount != 0) {
-          event.limit = newCount - currentCount;
+          final delta = newCount - currentCount;
+          Logger.debug("Notifications: firing for $delta new message(s) (baseline $currentCount -> $newCount)");
+          event.limit = delta;
           final messages = event.find();
           event.limit = 0;
           for (Message message in messages) {

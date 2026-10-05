@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:android_play_install_referrer/android_play_install_referrer.dart';
 import 'package:bluebubbles/app/layouts/conversation_list/pages/conversation_list.dart';
+import 'package:bluebubbles/app/layouts/settings/pages/system/notification_replay_debug_panel.dart';
 import 'package:bluebubbles/app/layouts/setup/pages/rustpush/appleid_2fa.dart';
 import 'package:bluebubbles/app/layouts/setup/pages/rustpush/appleid_login.dart';
 import 'package:bluebubbles/app/layouts/setup/pages/rustpush/finalize.dart';
@@ -945,6 +946,14 @@ class _SetupViewState extends OptimizedState<SetupView> {
       canPop: false,
       child: Scaffold(
         backgroundColor: ss.settings.windowEffect.value != WindowEffect.disabled ? Colors.transparent : context.theme.colorScheme.background,
+        floatingActionButton: kDebugMode && !kIsWeb && !kIsDesktop
+            ? FloatingActionButton.extended(
+                heroTag: 'notification-replay-debug',
+                onPressed: () => Get.to(() => const NotificationReplayDebugPanel(), routeName: '/debug/notification-replay'),
+                icon: const Icon(Icons.bug_report),
+                label: const Text('Test notification replay'),
+              )
+            : null,
         body: SafeArea(
           child: Column(
             children: <Widget>[

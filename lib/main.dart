@@ -20,6 +20,7 @@ import 'package:bluebubbles/app/wrappers/titlebar_wrapper.dart';
 import 'package:bluebubbles/app/wrappers/stateful_boilerplate.dart';
 import 'package:bluebubbles/database/models.dart';
 import 'package:bluebubbles/services/services.dart';
+import 'package:bluebubbles/services/backend/sync/notification_replay_test_hook.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_debounce/easy_debounce.dart';
 import 'package:flutter/foundation.dart';
@@ -639,7 +640,7 @@ class _HomeState extends OptimizedState<Home> with WidgetsBindingObserver, TrayL
               backgroundColor: context.theme.colorScheme.background.themeOpacity(context),
               body: Builder(
                 builder: (BuildContext context) {
-                  if (ss.settings.finishedSetup.value) {
+                  if (ss.settings.finishedSetup.value && !(kDebugMode && NotificationReplayTestHook.bypassingSetup)) {
                     if (!serverCompatible && kIsWeb) {
                       return const FailureToStart(
                         otherTitle: "Server version too low, please upgrade!",
