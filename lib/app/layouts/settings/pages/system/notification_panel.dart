@@ -2,6 +2,7 @@ import 'package:bluebubbles/helpers/helpers.dart';
 import 'package:bluebubbles/app/layouts/conversation_list/pages/conversation_list.dart';
 import 'package:bluebubbles/app/layouts/conversation_list/widgets/tile/conversation_tile.dart';
 import 'package:bluebubbles/app/layouts/settings/dialogs/notification_settings_dialog.dart';
+import 'package:bluebubbles/app/layouts/settings/pages/system/notification_replay_debug_panel.dart';
 import 'package:bluebubbles/app/wrappers/scrollbar_wrapper.dart';
 import 'package:bluebubbles/app/layouts/settings/widgets/settings_widgets.dart';
 import 'package:bluebubbles/app/wrappers/theme_switcher.dart';
@@ -50,6 +51,13 @@ class _NotificationPanelState extends OptimizedState<NotificationPanel> with Sin
                             : materialSubtitle),
                   )),
             SettingsSection(backgroundColor: tileColor, children: [
+              if (kDebugMode && !kIsWeb && !kIsDesktop)
+                SettingsTile(
+                  title: 'Debug: notification replay',
+                  subtitle: 'Simulate history restoration without an Apple account',
+                  backgroundColor: tileColor,
+                  onTap: () => Get.to(() => const NotificationReplayDebugPanel(), routeName: '/debug/notification-replay'),
+                ),
               if (!kIsWeb)
                 Obx(() => SettingsSwitch(
                   onChanged: (bool val) {
